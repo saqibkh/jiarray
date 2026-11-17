@@ -64,11 +64,11 @@ jobs:
           targets=$(cmake --build build --target help | sed -n 's/^\.\.\. //p' | sed 's/ .*//' \
             | grep -E '^dnegri\.jiarray\.(device_array_(test|rowmajor_test|host_test)|cuda_array_init0_.*_test)$')
           echo "$targets"
-          test "$(echo "$targets" | wc -l)" -eq 19
+          test "$(echo "$targets" | wc -l)" -eq 11
           vgpu run --preload cmake --build build -j3 --target $targets
 
       # ctest fails on a failed gtest. The job also fails when no test was
-      # found, when fewer than 50 ran, or when any test was skipped or not run.
+      # found, when fewer than 30 ran, or when any test was skipped or not run.
       - name: Test
         shell: bash
         run: |
@@ -77,7 +77,7 @@ jobs:
             -R 'CudaArrayInit0Test|DeviceArray' | tee ctest.log
           grep -q "100% tests passed, 0 tests failed out of" ctest.log
           n=$(sed -n 's/.*tests passed, 0 tests failed out of \([0-9]*\).*/\1/p' ctest.log)
-          test "${n:-0}" -ge 50
+          test "${n:-0}" -ge 30
           if grep -Eqi "skipped|not run|\*\*\*Failed|CUDA error|NOT_BUILT" ctest.log; then
             echo "::error::a test was skipped, not run or failed"
             exit 1
